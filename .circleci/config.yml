@@ -12,7 +12,7 @@ jobs:
     steps:
       - browser-tools/install-browser-tools
       - checkout
-
+ 
       # Restore dependencies
       - restore_cache:
           keys:
