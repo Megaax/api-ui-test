@@ -1,0 +1,63 @@
+version: 2.1
+
+orbs:
+  browser-tools: circleci/browser-tools@1.4.7
+
+jobs:
+  api_test:
+    docker:
+      - image: circleci/node:14
+    working_directory: ~/repo/API-test
+
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package.json" }}
+            - v1-dependencies-
+      - run:
+          name: Install dependencies
+          command: npm install
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+      - run:
+          name: Run Jest tests
+          command: npm test
+
+  ui_test:
+    docker:
+      - image: cimg/node:16.15.0-browsers
+    working_directory: ~/repo/UI-test
+
+    steps:
+      - browser-tools/install-browser-tools
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package.json" }}
+            - v1-dependencies-
+      - run:
+          name: Install Node.js
+          command: nvm install 16.15.0 && nvm use 16.15.0
+      - run:
+          name: Install dependencies
+          command: npm install
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+      - run:
+          name: Install nightwatch-axe-verbose
+          command: npm install nightwatch-axe-verbose --save-dev
+      - run:
+          name: Run nightwatch tests
+          command: npm run test
+
+workflows:
+  version: 2
+  test_workflow:
+    jobs:
+      - api_test
+      - ui_test
